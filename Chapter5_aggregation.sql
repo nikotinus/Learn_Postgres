@@ -150,9 +150,8 @@ order by
 	1 nulls last
 	, 2 nulls last;
 	
---
+--GROUPING SETS (13/13)
 /*
-GROUPING SETS (13/13)
 
 Получи информацию о количестве сотрудников из таблицы employee:
 
@@ -176,3 +175,142 @@ group by grouping sets ((e.store_id, rank_id), ())
 order by 
 	1 nulls last
 	, 2 nulls last;
+
+--chapter5. Объединение результатов (1/8). ilike - поиск по вхождению
+/*
+ Давай представим, что мы делаем поиск по названию товаров и категорий товаров.
+
+Найди все товары и категории товаров, в названии которых встречается подстрока 
+'но' без учета регистра (name ilike '%но%'). В результате выведи один столбец:
+
+name - название товара или категории товаров.
+Сортировать строки результата не нужно.
+ */
+select 
+	p.name
+from product p 
+where p."name" ilike '%но%' 
+union 
+select c.name
+from category c 
+where c."name" ilike '%но%'
+
+--chapter5. Пересечение строк (3/8) 
+/*
+
+Выведи товары заказа (таблицы purchase_item и purchase), которые проданы 
+по цене из каталога (таблица product_price).
+
+Выведи столбцы:
+
+product_id - идентификатор товара;
+store_id - идентификатор магазина;
+price - цена.
+Для определения идентификатора магазина для товара заказа, нужно присоединить 
+таблицу purchase.
+*/
+select 
+	p_i.product_id 
+	, p.store_id 
+	, p_i.price 
+from purchase p
+inner join purchase_item as p_i
+on p_i.purchase_id = p.purchase_id
+intersect 
+select 
+	pp.product_id 
+	, pp.store_id 
+	, pp.price 
+from product_price pp ;
+
+--chapter5. Исключение строк (4/8)
+/*
+Выведи товары заказа (таблицы purchase_item и purchase), которых 
+больше нет в каталоге в магазине заказа по цене заказа (таблица product_price).
+
+Выведи столбцы:
+
+product_id - идентификатор товара;
+store_id - идентификатор магазина;
+price - цена.
+Для определения идентификатора магазина для товара заказа, 
+нужно присоединить таблицу purchase.
+*/
+select 
+	p_i.product_id 
+	, p.store_id 
+	, p_i.price 
+from purchase p
+inner join purchase_item as p_i
+on p_i.purchase_id = p.purchase_id
+except 
+select 
+	pp.product_id 
+	, pp.store_id 
+	, pp.price 
+from product_price pp ;
+
+--chapter5. Дубликаты строк (5/8)
+select 
+	p.name
+	, 'Товар' as "type"
+from product p 
+where p."name" ilike '%но%' 
+union all
+select 
+	c.name
+	, 'Категория' as "type"
+from category c 
+where c."name" ilike '%но%'
+
+--Совпадение типов данных столбцов (6/8)
+/*
+Объедини строки таблиц product_price и purchase_item и выведи три столбца:
+
+product_id - идентификатор товара;
+price - цена;
+count - количество приобретенных товаров. Для таблицы product_price выведи 
+значение 'отсутствует'.
+*/
+select 
+	pp.product_id 
+	, pp.price
+	, 'отсутствует' as "count"
+from product_price as pp
+union all
+select 
+	pi2.product_id 
+	, pi2.price
+	, pi2.count :: text 
+from purchase_item pi2;
+
+-- 7/8
+select 
+	p.name
+	, 'Товар' as "type"
+from product p 
+where p."name" ilike '%но%' 
+union all
+select 
+	c.name
+	, 'Категория' as "type"
+from category c 
+where c."name" ilike '%но%'
+order by name, "type"
+
+-- 8/8
+(select
+	pp.product_id 
+from product_price pp
+except
+select
+	pi2.product_id 
+from purchase_item pi2)
+union
+(select
+	pi2.product_id 
+from purchase_item pi2
+except
+select
+	pp.product_id 
+from product_price pp)
