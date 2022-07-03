@@ -314,3 +314,43 @@ except
 select
 	pp.product_id 
 from product_price pp)
+
+-- chapter Subqueries. 1/9
+select 
+	p."name" as product_name
+	, pi2.count 
+	, pi2.price  
+from purchase_item as pi2
+inner join product p 
+on p.product_id = pi2.product_id 
+where pi2.price = (select max(pi3.price) from purchase_item pi3) 
+
+-- chapter Subqueries. 2/9 Коррелированные подзапросы
+/*
+ * Найди самые дорогие товары в каждой категории товаров. Выведи столбцы:
+
+category_name - название категории товара;
+product_name - название товара;
+price - стоимость товара.
+Отсортируй результат сначала по названию категории, затем по названию товара.
+
+Помни, что в подзапросах тоже можно выполнять соединение таблиц.
+*/
+select
+	c.name as category_name
+	, p.name as product_name
+	, pp.price
+from category c 
+inner join product p  
+on p.category_id  = c.category_id 
+inner join product_price pp 
+on pp.product_id = p.product_id 
+where pp.price = (
+	select max(pp2.price)
+	from product_price pp2
+	inner join product p2 
+	on p2.product_id  = pp2.product_id 
+	where p2.category_id = c.category_id 
+)
+order by 1,2, pp.price desc  
+
