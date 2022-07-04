@@ -327,7 +327,7 @@ where pi2.price = (select max(pi3.price) from purchase_item pi3)
 
 -- chapter Subqueries. 2/9 Коррелированные подзапросы
 /*
- * Найди самые дорогие товары в каждой категории товаров. Выведи столбцы:
+Найди самые дорогие товары в каждой категории товаров. Выведи столбцы:
 
 category_name - название категории товара;
 product_name - название товара;
@@ -354,3 +354,23 @@ where pp.price = (
 )
 order by 1,2, pp.price desc  
 
+-- chapter Подзапрос вернул более одной строки (3/9)
+/*
+Для каждой категории товаров получи пример товара.
+
+Выведи поля:
+
+name - название категории;
+product_example - название примера продукта в категории. 
+Возьми первый по алфавиту товар в категории.
+Отсортируй результат по названию категории.
+*/
+select 
+(select 
+	c."name"
+	, p."name" 
+from category c
+left join product p 
+on p.category_id = c.category_id 
+order by p."name" 
+limit 1)
