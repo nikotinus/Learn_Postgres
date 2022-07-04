@@ -467,6 +467,7 @@ order by 2,1
 select 
 	e.employee_id 
 	, e.last_name 
+	, e.
 	, e.first_name
 	, e.rank_id 
 from employee e 
@@ -475,3 +476,50 @@ where not exists (
 	from employee m 
 	where m.manager_id = e.employee_id)
 order by 2,1
+
+--2/9
+select
+  lower(concat(e.last_name, ' ', e.first_name)) as lower,
+  upper(concat(e.last_name, ' ', e.first_name)) as upper,
+  initcap(concat(e.last_name, ' ', e.first_name)) as initcap
+from employee as e
+order by e.last_name, e.first_name
+
+--3/9
+select e.last_name , length(e.last_name) as "length"
+from employee e 
+order by 2 desc,1
+
+--4/9
+select e.employee_id , concat(e.last_name, ' ', Upper(left(e.first_name, 1)))
+from employee e
+
+--5/9
+select e.last_name,
+	left(e.last_name, position('а' in lower(e.last_name))) as substring
+from employee e 
+order by e.last_name 
+
+--6/9
+select concat(e.last_name, ' ', rpad(left(e.first_name,1), length(e.first_name), '*')) as mask
+from employee e
+order by 1
+
+--7/9
+--select trim(concat(e.last_name, ' ', e.first_name, ' ', e.middle_name)) as full_name
+select  trim(both ' ' from concat(e.last_name, ' ', e.first_name, ' ', e.middle_name)) as full_name
+from employee e 
+order by 1
+
+--8/9
+select replace(replace(sa.address, 'пр.', 'проспект'), 'ул.', 'улица') as address_full
+from store_address sa 
+
+--9/9
+SELECT distinct 
+e.first_name 
+, translate(e.first_name
+	, 'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЫЭЮЯабвгдеёжзийклмнопрстуфхцчшщыэюяЬЪьъ'
+	, 'ABVGDEEJZIJKLMNOPRSTUFHCHSSYEYAabvgdeejzijklmnoprstufhchssyeya') as first_name_translated
+from employee e 
+order by 1
