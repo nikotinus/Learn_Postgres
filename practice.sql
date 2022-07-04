@@ -366,11 +366,112 @@ product_example - название примера продукта в катег
 Отсортируй результат по названию категории.
 */
 select 
-(select 
-	c."name"
+	c."name" 
+	, (select 
+		p."name" 
+	from product p 
+	where p.category_id = c.category_id 
+	order by p."name" 
+	limit 1) as product_example
+from category c 
+order by 1
+
+--4/9
+select 
+	c.category_id 
+	, c."name" 
+from category c 
+where (select 
+		p."name" 
+	from product p 
+	where p.category_id = c.category_id 
+	order by p."name" 
+	limit 1) is NULL
+order by 2
+
+--5/9
+select 
+	e.employee_id 
+	, e.last_name 
+	, e.first_name
+	, e.rank_id 
+from employee e 
+where e.employee_id in (
+	select distinct e.manager_id 
+	from employee e 
+	where e.manager_id is not null)
+order by 2,4
+
+-- 6/9
+select 
+	p.product_id 
 	, p."name" 
-from category c
-left join product p 
-on p.category_id = c.category_id 
-order by p."name" 
-limit 1)
+from product p 
+where p.product_id not in (
+	select distinct 
+	pi2.product_id 
+	from purchase_item pi2 
+)
+
+--NULL значения в NOT IN (7/9)
+/*
+Получи информацию о сотрудниках, которые никем 
+не руководят (идентификатор сотрудника отсутствует 
+в столбце employee.manager_id). Выведи следующие столбцы:
+
+employee_id - идентификатор сотрудника;
+last_name - фамилия;
+first_name - имя;
+rank_id - идентификатор должности.
+Отсортируй результат сначала по фамилии, затем 
+по идентификатору сотрудника.*/
+select 
+	e.employee_id 
+	, e.last_name 
+	, e.first_name
+	, e.rank_id 
+from employee e 
+where e.employee_id not in (
+	select e.manager_id 
+	from employee e 
+	where e.manager_id is not null)
+order by 2,4
+
+--Проверка существования строки (8/9)
+/*
+Получи информацию о сотрудниках, которые кем-либо руководят 
+(идентификатор сотрудника присутствует в столбце 
+employee.manager_id). Выведи следующие столбцы:
+
+employee_id - идентификатор сотрудника;
+last_name - фамилия;
+first_name - имя;
+rank_id - идентификатор должности.
+Отсортируй результат сначала по фамилии, 
+затем по идентификатору сотрудника.
+
+P.S. Да-да, такое задание уже было :) Но теперь воспользуйся EXISTS.*/
+select 
+	m.employee_id 
+	, m.last_name 
+	, m.first_name
+	, m.rank_id 
+from employee m 
+where exists (
+	select e.manager_id 
+	from employee e 
+	where e.manager_id = m.employee_id)
+order by 2,1
+
+--9/9
+select 
+	e.employee_id 
+	, e.last_name 
+	, e.first_name
+	, e.rank_id 
+from employee e 
+where not exists (
+	select 1 
+	from employee m 
+	where m.manager_id = e.employee_id)
+order by 2,1
