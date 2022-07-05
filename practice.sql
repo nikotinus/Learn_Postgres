@@ -523,3 +523,141 @@ e.first_name
 	, 'ABVGDEEJZIJKLMNOPRSTUFHCHSSYEYAabvgdeejzijklmnoprstufhchssyeya') as first_name_translated
 from employee e 
 order by 1
+
+--chapter Арифметические операции
+
+-- Простейшие арифметические операции (+ - * /) (1/13)
+select
+	pi2.purchase_id 
+	, pi2.product_id 
+	, pi2.price 
+	, pi2."count"
+	, pi2.price * pi2.count as total_price
+from purchase_item pi2 
+order by 1,2
+
+--Порядок выполнения операций (2/13)
+/*
+В некоторых магазинах существует "гарантия лучшей цены". 
+Если вы находите такой же товар дешевле в другом магазине, 
+то вам предоставляют скидку в размере определенного процента от разницы цен.
+
+В этом задании будем предоставлять скидку в размере 50% от разницы цен. 
+Например, если товар в текущем магазине стоит 2000, а в другом 1800, 
+то скидка составит (2000 - 1800) * 0.5 = 100.
+
+Определи размер скидки на товар из product_price от минимальной цены 
+на этот товар по всем магазинам.
+
+product_id - идентификатор товара;
+store_id - идентификатор магазина;
+price - цена на товар в магазине;
+discount - размер 50% скидки от минимальной стоимости на товар в других магазинах.
+Отсортируй результат сначала по идентификатору товара, затем по цене на товар в магазине.
+*/
+select 
+	pp.product_id 
+	, pp.store_id 
+	, pp.price 
+	, (pp.price - (select min(pp2.price)
+		from product_price pp2 
+		where pp2.product_id  = pp.product_id)) * 0.5 as discount
+from product_price pp 
+order by 1, 3
+
+--3/13
+select 
+	pi2.purchase_item_id 
+	, pi2.count 
+	, (pi2.count / 2) as whole
+	, pi2.count * 1.0 / 2 as fractional
+from purchase_item pi2 
+order by 2
+
+--4/13
+select 
+	pi2.purchase_item_id 
+	, pi2.count 
+	, pi2.count % 2 as is_odd
+from purchase_item pi2 
+order by 2 desc 
+
+--5/13
+select 
+	t.timezone_id 
+from timezone t 
+where right(t.time_offset, -4)::integer =4
+
+--6/13
+select 
+	pp.store_id 
+	, avg(pp.price) as average_price
+	, round(avg(pp.price), 2) as average_price_rounded
+from product_price pp 
+group by pp.store_id 
+order by 2
+
+--7/13
+select 
+	pp.store_id 
+	, avg(pp.price) as average_price
+	, round(avg(pp.price), 2) as average_price_round
+	, trunc(avg(pp.price), 2) as average_price_trunc 
+from product_price pp 
+group by pp.store_id 
+order by 2
+
+--8/13
+select 
+	pp.product_id  
+	, avg(pp.price) as price_avg
+	, round(avg(pp.price), 0) as price_avg_round
+	, ceil(avg(pp.price)) as price_avg_ceil 
+from product_price pp 
+group by pp.product_id  
+order by 2 desc 
+
+--9/13
+select 
+	pp.product_id  
+	, avg(pp.price) as price_avg
+	, round(avg(pp.price), 0) as price_avg_round
+	, ceil(avg(pp.price)) as price_avg_ceil
+	, floor(avg(pp.price)) as price_avg_floor
+	, trunc(avg(pp.price)) as price_avg_trunc
+from product_price pp 
+group by pp.product_id  
+order by 2 desc 
+
+--10/13
+select 
+	pp.product_id 
+	, pp.store_id 
+	, pp.price 
+	, greatest(round(0.05 * pp.price,0), 1000) as prepayment
+from product_price pp 
+order by 3,1,2
+
+--11/13
+select 
+	pp.product_id 
+	, pp.store_id 
+	, pp.price 
+	, least(round(0.05 * pp.price,0), 1000) as prepayment_least
+	, greatest(round(0.05 * pp.price,0), 1000) as prepayment_greatest
+from product_price pp 
+order by 3,1,2
+
+--12/13
+select 
+	pp.product_id 
+	, pp.store_id 
+	, pp.price 
+	, (select round(avg(pp2.price), 2)
+		from product_price pp2
+		where pp2.product_id = pp.product_id) as price_avg
+	, abs(pp.price - (select round(avg(pp2.price), 2)
+		from product_price pp2
+		where pp2.product_id = pp.product_id)) as price_difference	
+from product_price pp 
+order by 1,3,2
