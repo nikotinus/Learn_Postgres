@@ -661,3 +661,12 @@ select
 		where pp2.product_id = pp.product_id)) as price_difference	
 from product_price pp 
 order by 1,3,2
+
+--13/13
+select 
+	pp.product_id 
+	, pp.store_id 
+	, pp.price 
+	, trim(to_char(pp.price, '999G999G999G999.99')) as price_formatted
+from product_price pp 
+order by 3 desc 
