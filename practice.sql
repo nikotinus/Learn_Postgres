@@ -832,4 +832,43 @@ with sales_per_employee as (
 select *, 'Уволить' as action from to_fire
 union all
 select *, 'Повысить' from to_level_up
-order by sum_purchases, employee_id 
+order by sum_purchases, employee_id;
+
+--4/12
+with recursive _tmp as (
+	select -10 as num
+	union all
+	select _t.num + 1 from _tmp as _t
+	where _t.num < 10
+) select * from _tmp
+
+--5/12
+with recursive _init as (
+  select 101 as start_num, 110 - 101 + 1 as c_iter
+  union all
+  select 201 as start_num, 215 - 201 + 1 as c_iter
+  union all
+  select 301 as start_num, 320 - 301 + 1 as c_iter
+), _tmp (start_num, c_iter, cur_iter, result_number) as (
+  select 
+    start_num
+    , c_iter
+    , 1 as cur_iter
+    , start_num as result_number
+  from _init
+  union all
+  select 
+    _t.start_num
+    , _t.c_iter
+    , _t.cur_iter + 1 
+    , _t.result_number + 1
+  from _tmp as _t
+  where _t.cur_iter < _t.c_iter
+) 
+select
+  res.result_number
+from _tmp as res
+order by 1
+
+--6/12
+
