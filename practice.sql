@@ -804,3 +804,32 @@ select
 from sales_per_employee as spe
 where spe.sum_purchases < (select avg(spe.sum_purchases) from sales_per_employee as spe)
 order by 4, 1
+
+--3/12
+with sales_per_employee as (
+		select 
+			p.employee_id 
+			, e.last_name 
+			, e.first_name 
+			, sum(pi2.price * pi2.count) as sum_purchases
+		from purchase p, purchase_item pi2, employee e 
+		where p.purchase_id = pi2.purchase_id 
+			and e.employee_id = p.employee_id
+		group by p.employee_id 
+			, e.last_name 
+			, e.first_name
+), to_fire as (
+	select *
+	from sales_per_employee as spe
+	order by spe.sum_purchases
+	limit 2
+), to_level_up as (
+	select *
+	from sales_per_employee as spe
+	order by spe.sum_purchases desc
+	limit 2
+)
+select *, 'Уволить' as action from to_fire
+union all
+select *, 'Повысить' from to_level_up
+order by sum_purchases, employee_id 
