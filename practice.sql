@@ -868,7 +868,87 @@ with recursive _init as (
 select
   res.result_number
 from _tmp as res
-order by 1
+order by 1;
 
 --6/12
+WITH RECURSIVE lv_hierarchy AS (
+	select e.employee_id 
+		, e.first_name 
+		, e.last_name 
+		, 0 as count_managers
+	from employee e 
+	where e.manager_id is null
+	
+	union all 
+	
+	select 
+		e.employee_id 
+		, e.first_name 
+		, e.last_name 
+		, _t.count_managers + 1
+	from lv_hierarchy _t
+		, employee e
+	where e.manager_id = _t.employee_id) 
+select *
+from lv_hierarchy;
 
+--7/12
+WITH RECURSIVE lv_hierarchy AS (
+	select e.employee_id 
+		, e.first_name 
+		, e.last_name 
+		, 0 as count_managers
+		, '' as managers
+	from employee e 
+	where e.manager_id is null
+	
+	union all 
+	
+	select 
+		e.employee_id 
+		, e.first_name 
+		, e.last_name 
+		, _t.count_managers + 1
+		, _t.managers || _t.first_name || ' ' || _t.last_name || '; '
+	from lv_hierarchy _t
+		, employee e
+	where e.manager_id = _t.employee_id) 
+select 
+	res.employee_id
+	, res.first_name
+	, res.last_name
+	, res.count_managers
+	, trim(both  '; ' from res.managers) as managers
+from lv_hierarchy as res;
+
+--8/12
+WITH RECURSIVE lv_hierarchy AS (
+	select e.employee_id 
+		, e.first_name 
+		, e.last_name 
+		, 0 as count_managers
+		, '' as managers
+		, e.first_name || ' ' || e.last_name || '; ' as sorted
+	from employee e 
+	where e.manager_id is null
+	
+	union all 
+	
+	select 
+		e.employee_id 
+		, e.first_name 
+		, e.last_name 
+		, _t.count_managers + 1
+		, _t.managers || _t.first_name || ' ' || _t.last_name || '; '
+		, _t.sorted || _t.first_name || ' ' || _t.last_name || '; '
+	from lv_hierarchy _t
+		, employee e
+	where e.manager_id = _t.employee_id) 
+select 
+	res.employee_id
+	, res.first_name
+	, res.last_name
+	, res.count_managers
+	, trim(both '; ' from res.managers) as managers
+from lv_hierarchy as res
+order by res.sorted, res.first_name, res.last_name
