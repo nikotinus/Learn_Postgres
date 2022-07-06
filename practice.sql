@@ -784,4 +784,23 @@ SELECT e.employee_id,
  ORDER BY ep.count_total DESC,
           e.employee_id,
           pp.price_purchase,
-          p.purchase_id
+          p.purchase_id;
+ --2/12
+with sales_per_employee as (
+		select 
+			p.employee_id 
+			, e.last_name 
+			, e.first_name 
+			, sum(pi2.price * pi2.count) as sum_purchases
+		from purchase p, purchase_item pi2, employee e 
+		where p.purchase_id = pi2.purchase_id 
+			and e.employee_id = p.employee_id
+		group by p.employee_id 
+			, e.last_name 
+			, e.first_name
+		)
+select
+	*
+from sales_per_employee as spe
+where spe.sum_purchases < (select avg(spe.sum_purchases) from sales_per_employee as spe)
+order by 4, 1
