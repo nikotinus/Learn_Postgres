@@ -670,3 +670,118 @@ select
 	, trim(to_char(pp.price, '999G999G999G999.99')) as price_formatted
 from product_price pp 
 order by 3 desc 
+
+--1/12
+/*
+select
+	tp.employee_id
+	, e.last_name 
+	, e.first_name 
+	, tp.purchase_id 
+	, tp.price_purchase
+	, round(100 
+			* tp.price_purchase
+			/ (select sum(pi2.price * pi2.count) 
+				from purchase_item pi2 
+				inner join purchase p2 
+				on p2.purchase_id = pi2.purchase_id 
+				where p2.employee_id = tp.employee_id)
+			) as price_total_percent
+	, (select sum(pi2.price * pi2.count) 
+		from purchase_item pi2 
+		inner join purchase p2 
+		on p2.purchase_id = pi2.purchase_id 
+		where p2.employee_id = tp.employee_id) as price_total
+	, (select count(p2.employee_id) 
+		from purchase_item pi2 
+		inner join purchase p2 
+		on p2.purchase_id = pi2.purchase_id 
+		where p2.employee_id = tp.employee_id) as count_total
+from (select
+			p2.employee_id 
+			, p2.purchase_id 
+			, sum(pi2.price * pi2.count) as price_purchase 
+		from purchase_item pi2 
+		inner join purchase p2 
+		on p2.purchase_id = pi2.purchase_id
+		group by p2.employee_id 
+				, p2.purchase_id) as tp
+inner join employee e 
+on e.employee_id = tp.employee_id
+order by 8 desc, 1, 5 desc, 4 
+
+
+select 
+	tp.employee_id
+	, tp.last_name 
+	, tp.first_name
+	, p.purchase_id
+	, sum(pi3.price * pi3.count) as price_purchase
+	, round(
+			100
+			* sum(pi3.price * pi3.count)
+			/ tp.price_total
+		, 0) as price_total_percent
+	, tp.price_total
+	, tp.count_total
+from (select 
+		p2.employee_id
+		, e.last_name 
+		, e.first_name
+		, sum(pi2.price * pi2.count) as price_total
+		, count(distinct p2.purchase_id) as count_total
+		from purchase_item pi2 
+		inner join purchase p2 
+		on p2.purchase_id = pi2.purchase_id
+		inner join employee e 
+		on e.employee_id = p2.employee_id
+		group by 
+			p2.employee_id
+			, e.last_name 
+			, e.first_name
+	) as tp
+inner join purchase p 
+on p.employee_id = tp.employee_id
+inner join purchase_item pi3 
+on pi3.purchase_id = p.purchase_id 
+group by 
+	tp.employee_id
+	, tp.last_name 
+	, tp.first_name
+	, p.purchase_id 
+	, tp.price_total
+	, tp.count_total
+order by 8 desc, 1, 5 desc, 4 
+*/
+SELECT e.employee_id,
+       e.last_name,
+       e.first_name,
+       p.purchase_id,
+       pp.price_purchase,
+       round (100 * price_purchase / ep.price_total) AS price_total_percent,
+       ep.price_total,
+       ep.count_total
+  FROM purchase p,
+       (SELECT p.employee_id,
+               sum (pi.price * pi.count) AS price_total,
+               count (distinct p.purchase_id) AS count_total
+          FROM purchase p,
+               purchase_item pi
+         WHERE pi.purchase_id = p.purchase_id
+         GROUP BY p.employee_id
+       ) ep,
+       (SELECT p.purchase_id,
+               sum (pi.price * pi.count) as price_purchase
+          FROM purchase p,
+               purchase_item pi
+         WHERE pi.purchase_id = p.purchase_id
+         GROUP BY p.purchase_id
+       ) pp,
+       employee e
+ WHERE e.employee_id = p.employee_id
+   AND ep.employee_id = p.employee_id
+   AND pp.purchase_id = p.purchase_id
+ ORDER BY ep.count_total DESC,
+          e.employee_id,
+          pp.price_purchase,
+          p.purchase_id
